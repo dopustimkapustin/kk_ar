@@ -12,65 +12,74 @@
     <style>
       html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
 
+      a-scene {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+      }
+
+      /* UI overlay */
       #ui {
         position: fixed;
         inset: 0;
         z-index: 10;
       }
+      #ui.hidden { display: none; }
 
-      #ui::before {
-        content: "";
+      /* gradient behind everything */
+      #ui .grad {
         position: absolute;
         inset: 0;
         background: linear-gradient(to bottom, #020028 0%, #001FA8 100%);
+        z-index: 0;
       }
 
-      #ui-image {
+      /* bg image ABOVE gradient, BELOW UI elements */
+      #ui .bgimg {
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        width: 100%;
-        height: auto;
-        display: block;
-        object-fit: cover;
+        inset: 0;
+        background: url("./bg_new.png") no-repeat top center / cover;
         z-index: 1;
       }
 
+      /* UI elements */
       #start {
         position: absolute;
         left: 50%;
         bottom: 160px;
         transform: translateX(-50%);
-        z-index: 2;
-
-        appearance: none;
+        font-size: 28px;
+        font-weight: 700;
+        padding: 18px 44px;
+        border-radius: 28px;
         border: 0;
-        border-radius: 22px;
-        padding: 18px 34px;
-        font: 800 22px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+        background: #ff0a5b;
         color: #fff;
-        background: #ff0a54;
+        z-index: 2;
+        -webkit-tap-highlight-color: transparent;
       }
-
-      #start:active { transform: translateX(-50%) translateY(1px); }
 
       #byline {
         position: absolute;
         left: 50%;
         bottom: 80px;
         transform: translateX(-50%);
+        font: 20px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        color: rgba(255,255,255,0.9);
         z-index: 2;
-
-        font: 500 16px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial;
-        color: rgba(255,255,255,0.85);
       }
+
+      /* help ensure AR canvas doesn't paint black over camera */
+      canvas { background: transparent !important; }
     </style>
   </head>
 
   <body>
     <div id="ui">
-      <img id="ui-image" src="./ui/bg_new.png" alt="" />
+      <div class="grad"></div>
+      <div class="bgimg"></div>
       <button id="start">Start AR</button>
       <div id="byline">by Alena Sokolova</div>
     </div>
@@ -79,7 +88,8 @@
       mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; filterBeta: 0.0005;"
       color-space="sRGB"
       embedded
-      renderer="colorManagement: true, physicallyCorrectLights: true; alpha: true"
+      renderer="alpha: true; colorManagement: true; physicallyCorrectLights: true"
+      background="transparent: true"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
     >
@@ -123,19 +133,19 @@
     </a-scene>
 
     <script>
-      const ui = document.getElementById('ui');
-      const startBtn = document.getElementById('start');
-      const sceneEl = document.querySelector('a-scene');
+      const ui = document.getElementById("ui");
+      const startBtn = document.getElementById("start");
+      const sceneEl = document.querySelector("a-scene");
 
       const waitLoaded = () => new Promise((resolve) => {
         if (sceneEl.hasLoaded) return resolve();
-        sceneEl.addEventListener('loaded', resolve, { once: true });
+        sceneEl.addEventListener("loaded", resolve, { once: true });
       });
 
-      startBtn.addEventListener('click', async () => {
+      startBtn.addEventListener("click", async () => {
         await waitLoaded();
-        ui.style.display = 'none';
         await sceneEl.systems["mindar-image-system"].start();
+        ui.classList.add("hidden");
       });
     </script>
   </body>
