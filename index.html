@@ -32,7 +32,7 @@
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
     >
-      <a-assets>
+      <a-assets timeout="20000">
         <a-asset-item id="model" src="./models/Ladybugs_03.glb"></a-asset-item>
       </a-assets>
 
@@ -53,9 +53,15 @@
       const startBtn = document.getElementById('start');
       const sceneEl = document.querySelector('a-scene');
 
+      const waitLoaded = () => new Promise((resolve) => {
+        if (sceneEl.hasLoaded) return resolve();
+        sceneEl.addEventListener('loaded', resolve, { once: true });
+      });
+
       startBtn.addEventListener('click', async () => {
-        ui.style.display = 'none';
+        await waitLoaded();
         await sceneEl.systems["mindar-image-system"].start();
+        ui.style.display = 'none';
       });
     </script>
   </body>
