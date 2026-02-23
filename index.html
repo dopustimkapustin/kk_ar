@@ -168,5 +168,66 @@
         ui.style.display = 'none';
       });
     </script>
+    <script>
+AFRAME.registerComponent('stable-wall', {
+  init: function () {
+    this.target = this.el
+    this.obj = this.el.querySelector('a-gltf-model')?.object3D
+    this.smoothPos = new THREE.Vector3()
+    this.smoothQuat = new THREE.Quaternion()
+    this.tmpPos = new THREE.Vector3()
+    this.tmpQuat = new THREE.Quaternion()
+    this.visible = false
+    this.lastSeen = 0
+
+    this.target.addEventListener('targetFound', () => {
+      this.visible = true
+      this.lastSeen = performance.now()
+    })
+
+    this.target.addEventListener('targetLost', () => {
+      this.lastSeen = performance.now()
+    })
+  },
+
+  tick: function () {
+    if (!this.obj) return
+
+    this.target.object3D.getWorldPosition(this.tmpPos)
+    this.target.object3D.getWorldQuaternion(this.tmpQuat)
+
+    if (!this.smoothPos.length()) {
+      this.smoothPos.copy(this.tmpPos)
+      this.smoothQuat.copy(this.tmpQuat)
+    }
+
+    let dist = this.smoothPos.distanceTo(this.tmpPos)
+    let angle = 2 * Math.acos(Math.min(1, Math.abs(this.smoothQuat.dot(this.tmpQuat))))
+
+    if (dist > 0.25 || angle > 0.4) {
+      this.smoothPos.lerp(this.tmpPos, 0.35)
+      this.smoothQuat.slerp(this.tmpQuat, 0.35)
+    } else {
+      this.smoothPos.lerp(this.tmpPos, 0.06)
+      this.smoothQuat.slerp(this.tmpQuat, 0.06)
+    }
+
+    this.obj.position.copy(this.smoothPos)
+    this.obj.quaternion.copy(this.smoothQuat)
+
+    if (this.visible) {
+      this.el.querySelectorAll('a-gltf-model').forEach(m => m.setAttribute('visible', true))
+    } else {
+      if (performance.now() - this.lastSeen > 250) {
+        this.el.querySelectorAll('a-gltf-model').forEach(m => m.setAttribute('visible', false))
+      }
+    }
+  }
+})
+
+document.querySelectorAll('[mindar-image-target]').forEach(el => {
+  el.setAttribute('stable-wall', '')
+})
+</script>
   </body>
 </html>
