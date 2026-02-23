@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <title>WebAR</title>
 
     <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
@@ -10,78 +10,98 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
-      html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: transparent;
+      }
+
+      /* Make sure camera video + canvas always fill the screen */
+      video, canvas {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        background: transparent !important;
+      }
 
       a-scene {
-        position: fixed;
-        inset: 0;
-        width: 100%;
-        height: 100%;
+        position: fixed !important;
+        inset: 0 !important;
         z-index: 0;
       }
 
-      /* UI overlay */
+      /* START SCREEN OVERLAY */
       #ui {
         position: fixed;
         inset: 0;
         z-index: 10;
+        display: block;
       }
-      #ui.hidden { display: none; }
 
-      /* gradient behind everything */
-      #ui .grad {
+      /* gradient layer */
+      #ui::before {
+        content: "";
         position: absolute;
         inset: 0;
-        background: linear-gradient(to bottom, #020028 0%, #001FA8 100%);
-        z-index: 0;
+        background: linear-gradient(180deg, #020028 0%, #001FA8 100%);
       }
 
-      /* bg image ABOVE gradient, BELOW UI elements */
-      #ui .bgimg {
+      /* background image layer (between gradient and UI elements) */
+      #ui::after {
+        content: "";
         position: absolute;
         inset: 0;
-        background: url("./bg_new.png") no-repeat top center / cover;
-        z-index: 1;
+        background-image: url("./bg_new.png");
+        background-repeat: no-repeat;
+        background-position: center top;
+        background-size: auto 100%;
+        pointer-events: none;
       }
 
-      /* UI elements */
+      /* UI elements layer */
+      #ui-content {
+        position: absolute;
+        inset: 0;
+        pointer-events: auto;
+      }
+
       #start {
         position: absolute;
         left: 50%;
-        bottom: 160px;
         transform: translateX(-50%);
-        font-size: 28px;
-        font-weight: 700;
-        padding: 18px 44px;
-        border-radius: 28px;
+        bottom: 160px;
+        padding: 18px 34px;
         border: 0;
-        background: #ff0a5b;
+        border-radius: 28px;
+        font: 700 34px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        white-space: nowrap;
+        background: #ff0a5c;
         color: #fff;
-        z-index: 2;
         -webkit-tap-highlight-color: transparent;
       }
 
       #byline {
         position: absolute;
         left: 50%;
-        bottom: 80px;
         transform: translateX(-50%);
-        font: 20px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        bottom: 80px;
+        font: 500 20px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
         color: rgba(255,255,255,0.9);
-        z-index: 2;
+        white-space: nowrap;
       }
-
-      /* help ensure AR canvas doesn't paint black over camera */
-      canvas { background: transparent !important; }
     </style>
   </head>
 
   <body>
     <div id="ui">
-      <div class="grad"></div>
-      <div class="bgimg"></div>
-      <button id="start">Start AR</button>
-      <div id="byline">by Alena Sokolova</div>
+      <div id="ui-content">
+        <button id="start">Start AR</button>
+        <div id="byline">by Alena Sokolova</div>
+      </div>
     </div>
 
     <a-scene
@@ -133,19 +153,19 @@
     </a-scene>
 
     <script>
-      const ui = document.getElementById("ui");
-      const startBtn = document.getElementById("start");
-      const sceneEl = document.querySelector("a-scene");
+      const ui = document.getElementById('ui');
+      const startBtn = document.getElementById('start');
+      const sceneEl = document.querySelector('a-scene');
 
       const waitLoaded = () => new Promise((resolve) => {
         if (sceneEl.hasLoaded) return resolve();
-        sceneEl.addEventListener("loaded", resolve, { once: true });
+        sceneEl.addEventListener('loaded', resolve, { once: true });
       });
 
-      startBtn.addEventListener("click", async () => {
+      startBtn.addEventListener('click', async () => {
         await waitLoaded();
         await sceneEl.systems["mindar-image-system"].start();
-        ui.classList.add("hidden");
+        ui.style.display = 'none';
       });
     </script>
   </body>
