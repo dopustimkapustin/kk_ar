@@ -17,7 +17,6 @@
         background: transparent;
       }
 
-      /* Make sure camera video + canvas always fill the screen */
       video, canvas {
         position: fixed !important;
         top: 0 !important;
@@ -34,7 +33,6 @@
         z-index: 0;
       }
 
-      /* START SCREEN OVERLAY */
       #ui {
         position: fixed;
         inset: 0;
@@ -42,7 +40,6 @@
         display: block;
       }
 
-      /* gradient layer */
       #ui::before {
         content: "";
         position: absolute;
@@ -50,7 +47,6 @@
         background: linear-gradient(180deg, #020028 0%, #001FA8 100%);
       }
 
-      /* background image layer (between gradient and UI elements) */
       #ui::after {
         content: "";
         position: absolute;
@@ -62,7 +58,6 @@
         pointer-events: none;
       }
 
-      /* UI elements layer */
       #ui-content {
         position: absolute;
         inset: 0;
@@ -105,10 +100,10 @@
     </div>
 
     <a-scene
-      mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; filterBeta: 0.0005;"
+      mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; filterMinCF: 0.0001; filterBeta: 0.003;"
       color-space="sRGB"
       embedded
-      renderer="alpha: true; colorManagement: true; physicallyCorrectLights: true"
+      renderer="alpha: true; antialias: true; colorManagement: true; physicallyCorrectLights: true"
       background="transparent: true"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
@@ -121,7 +116,7 @@
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <a-entity mindar-image-target="targetIndex: 0" scale="2.04 2.04 2.04">
+      <a-entity mindar-image-target="targetIndex: 0" scale="2.04 2.04 2.04" hold-visibility>
         <a-gltf-model
           src="#ladybugs"
           position="0 0 -0.01"
@@ -131,7 +126,7 @@
         ></a-gltf-model>
       </a-entity>
 
-      <a-entity mindar-image-target="targetIndex: 1" scale="2.04 2.04 2.04">
+      <a-entity mindar-image-target="targetIndex: 1" scale="2.04 2.04 2.04" hold-visibility>
         <a-gltf-model
           src="#dragonflies"
           position="0 0 -0.01"
@@ -141,7 +136,7 @@
         ></a-gltf-model>
       </a-entity>
 
-      <a-entity mindar-image-target="targetIndex: 2" scale="2.04 2.04 2.04">
+      <a-entity mindar-image-target="targetIndex: 2" scale="2.04 2.04 2.04" hold-visibility>
         <a-gltf-model
           src="#butterflies"
           position="0 0 -0.01"
@@ -153,6 +148,34 @@
     </a-scene>
 
     <script>
+      AFRAME.registerComponent('hold-visibility', {
+        init: function () {
+          this.found = false;
+          this.lastSeen = 0;
+
+          this.el.addEventListener('targetFound', () => {
+            this.found = true;
+            this.lastSeen = performance.now();
+          });
+
+          this.el.addEventListener('targetLost', () => {
+            this.found = false;
+            this.lastSeen = performance.now();
+          });
+        },
+        tick: function () {
+          const models = this.el.querySelectorAll('a-gltf-model');
+
+          if (this.found) {
+            models.forEach(m => m.setAttribute('visible', true));
+          } else {
+            if (performance.now() - this.lastSeen > 300) {
+              models.forEach(m => m.setAttribute('visible', false));
+            }
+          }
+        }
+      });
+
       const ui = document.getElementById('ui');
       const startBtn = document.getElementById('start');
       const sceneEl = document.querySelector('a-scene');
