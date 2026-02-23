@@ -1,167 +1,172 @@
 <!doctype html>
 <html>
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>WebAR</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>WebAR</title>
 
-<script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-<style>
-html,body{margin:0;height:100%;overflow:hidden;background:#000;}
-video,canvas{
-position:fixed!important;
-top:0!important;left:0!important;
-width:100%!important;height:100%!important;
-object-fit:cover!important;
-}
-#ui{
-position:fixed;inset:0;z-index:10;
-display:flex;align-items:center;justify-content:center;
-background:linear-gradient(180deg,#020028 0%,#001FA8 100%);
-}
-#start{
-padding:18px 40px;
-border:0;border-radius:28px;
-font:700 28px system-ui;
-background:#ff0a5c;color:#fff;
-}
-</style>
-</head>
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: transparent;
+      }
 
-<body>
+      /* Make sure camera video + canvas always fill the screen */
+      video, canvas {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        background: transparent !important;
+      }
 
-<div id="ui">
-<button id="start">Start AR</button>
-</div>
+      a-scene {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 0;
+      }
 
-<a-scene
-mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; filterMinCF:0.0001; filterBeta:0.005;"
-embedded
-color-space="sRGB"
-renderer="alpha:true; antialias:true; physicallyCorrectLights:true;"
-vr-mode-ui="enabled:false"
-device-orientation-permission-ui="enabled:false"
->
+      /* START SCREEN OVERLAY */
+      #ui {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: block;
+      }
 
-<a-assets>
-<a-asset-item id="ladybugs" src="./models/Ladybugs.glb"></a-asset-item>
-<a-asset-item id="dragonflies" src="./models/Dragonflies.glb"></a-asset-item>
-<a-asset-item id="butterflies" src="./models/Butterflies.glb"></a-asset-item>
-</a-assets>
+      /* gradient layer */
+      #ui::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, #020028 0%, #001FA8 100%);
+      }
 
-<a-camera position="0 0 0" look-controls="enabled:false"></a-camera>
+      /* background image layer (between gradient and UI elements) */
+      #ui::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url("./ui/bg_new.png");
+        background-repeat: no-repeat;
+        background-position: center top;
+        background-size: auto 100%;
+        pointer-events: none;
+      }
 
-<a-entity mindar-image-target="targetIndex:0">
-<a-entity class="smooth">
-<a-gltf-model src="#ladybugs"
-scale="2 2 2"
-animation-mixer
-class="model"
-visible="false">
-</a-gltf-model>
-</a-entity>
-</a-entity>
+      /* UI elements layer */
+      #ui-content {
+        position: absolute;
+        inset: 0;
+        pointer-events: auto;
+      }
 
-<a-entity mindar-image-target="targetIndex:1">
-<a-entity class="smooth">
-<a-gltf-model src="#dragonflies"
-scale="2 2 2"
-animation-mixer
-class="model"
-visible="false">
-</a-gltf-model>
-</a-entity>
-</a-entity>
+      #start {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 160px;
+        padding: 18px 34px;
+        border: 0;
+        border-radius: 28px;
+        font: 700 34px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        white-space: nowrap;
+        background: #ff0a5c;
+        color: #fff;
+        -webkit-tap-highlight-color: transparent;
+      }
 
-<a-entity mindar-image-target="targetIndex:2">
-<a-entity class="smooth">
-<a-gltf-model src="#butterflies"
-scale="2 2 2"
-animation-mixer
-class="model"
-visible="false">
-</a-gltf-model>
-</a-entity>
-</a-entity>
+      #byline {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 80px;
+        font: 500 20px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        color: rgba(255,255,255,0.9);
+        white-space: nowrap;
+      }
+    </style>
+  </head>
 
-</a-scene>
+  <body>
+    <div id="ui">
+      <div id="ui-content">
+        <button id="start">Start AR</button>
+        <div id="byline">by Alena Sokolova</div>
+      </div>
+    </div>
 
-<script>
+    <a-scene
+      mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; filterBeta: 0.0005;"
+      color-space="sRGB"
+      embedded
+      renderer="alpha: true; colorManagement: true; physicallyCorrectLights: true"
+      background="transparent: true"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+    >
+      <a-assets timeout="20000">
+        <a-asset-item id="ladybugs" src="./models/Ladybugs.glb"></a-asset-item>
+        <a-asset-item id="dragonflies" src="./models/Dragonflies.glb"></a-asset-item>
+        <a-asset-item id="butterflies" src="./models/Butterflies.glb"></a-asset-item>
+      </a-assets>
 
-AFRAME.registerComponent('ultrastable', {
-init:function(){
-this.obj=this.el.object3D
-this.pos=new THREE.Vector3()
-this.quat=new THREE.Quaternion()
-this.scale=new THREE.Vector3()
-this.tmpPos=new THREE.Vector3()
-this.tmpQuat=new THREE.Quaternion()
-this.tmpScale=new THREE.Vector3()
-this.visible=false
-this.lastSeen=0
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-this.el.parentNode.addEventListener('targetFound',()=>{
-this.visible=true
-this.lastSeen=performance.now()
-})
+      <a-entity mindar-image-target="targetIndex: 0" scale="2.04 2.04 2.04">
+        <a-gltf-model
+          src="#ladybugs"
+          position="0 0 -0.01"
+          rotation="0 0 0"
+          scale="-0.28 0.28 0.28"
+          animation-mixer="clip: *; loop: repeat"
+        ></a-gltf-model>
+      </a-entity>
 
-this.el.parentNode.addEventListener('targetLost',()=>{
-this.lastSeen=performance.now()
-})
-},
-tick:function(t,dt){
+      <a-entity mindar-image-target="targetIndex: 1" scale="2.04 2.04 2.04">
+        <a-gltf-model
+          src="#dragonflies"
+          position="0 0 -0.01"
+          rotation="0 0 0"
+          scale="-0.28 0.28 -0.28"
+          animation-mixer="clip: *; loop: repeat"
+        ></a-gltf-model>
+      </a-entity>
 
-this.el.parentNode.object3D.getWorldPosition(this.tmpPos)
-this.el.parentNode.object3D.getWorldQuaternion(this.tmpQuat)
-this.el.parentNode.object3D.getWorldScale(this.tmpScale)
+      <a-entity mindar-image-target="targetIndex: 2" scale="2.04 2.04 2.04">
+        <a-gltf-model
+          src="#butterflies"
+          position="0 0 -0.01"
+          rotation="0 0 0"
+          scale="-0.28 0.28 -0.28"
+          animation-mixer="clip: *; loop: repeat"
+        ></a-gltf-model>
+      </a-entity>
+    </a-scene>
 
-if(!this.pos.length()){
-this.pos.copy(this.tmpPos)
-this.quat.copy(this.tmpQuat)
-this.scale.copy(this.tmpScale)
-}
+    <script>
+      const ui = document.getElementById('ui');
+      const startBtn = document.getElementById('start');
+      const sceneEl = document.querySelector('a-scene');
 
-let dist=this.pos.distanceTo(this.tmpPos)
-let angle=2*Math.acos(Math.min(1,Math.abs(this.quat.dot(this.tmpQuat))))
+      const waitLoaded = () => new Promise((resolve) => {
+        if (sceneEl.hasLoaded) return resolve();
+        sceneEl.addEventListener('loaded', resolve, { once: true });
+      });
 
-if(dist>0.2||angle>0.3){
-this.pos.lerp(this.tmpPos,0.4)
-this.quat.slerp(this.tmpQuat,0.4)
-this.scale.lerp(this.tmpScale,0.4)
-}else{
-this.pos.lerp(this.tmpPos,0.08)
-this.quat.slerp(this.tmpQuat,0.08)
-this.scale.lerp(this.tmpScale,0.08)
-}
-
-this.obj.position.copy(this.pos)
-this.obj.quaternion.copy(this.quat)
-this.obj.scale.copy(this.scale)
-
-let models=this.el.querySelectorAll('.model')
-if(this.visible){
-models.forEach(m=>m.setAttribute('visible',true))
-}else{
-if(performance.now()-this.lastSeen>300){
-models.forEach(m=>m.setAttribute('visible',false))
-}
-}
-}
-})
-
-document.querySelectorAll('.smooth').forEach(el=>{
-el.setAttribute('ultrastable','')
-})
-
-const scene=document.querySelector('a-scene')
-document.getElementById('start').addEventListener('click',async()=>{
-await scene.systems["mindar-image-system"].start()
-document.getElementById('ui').style.display='none'
-})
-
-</script>
-
-</body>
+      startBtn.addEventListener('click', async () => {
+        await waitLoaded();
+        await sceneEl.systems["mindar-image-system"].start();
+        ui.style.display = 'none';
+      });
+    </script>
+  </body>
 </html>
